@@ -1,0 +1,17 @@
+[project]
+name = "llm-training"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "datasets>=4.0.0",
+    "ipykernel>=6.30.1",
+    "json-repair>=0.50.0",
+    "modelscope>=1.29.1",
+    "openai>=1.101.0",
+    "transformers==4.52.4",
+]
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple"
+default = true
