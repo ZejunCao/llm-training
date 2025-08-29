@@ -145,6 +145,8 @@ vllm 支持判别式奖励模型部署，cloud 模型的奖励头部分与其类
 
 * **部署**：修改 `cloud_infer_start.sh` 中的参数，然后运行 `sh cloud_infer_start.sh` 启动两个模型和fastapi服务，使用 jupyter 脚本调用测试。
 
+* **vllm改造**：目前尝试过改造vllm，使得先生成批判，然后再经过线性层得到奖励分数，但没有成功，有厉害的大神可以尝试一下。
+
 ---
 
 ## 🎯 实验总结与最佳实践
@@ -203,7 +205,7 @@ reward_model/cloud/
 
 ## 📄 许可证
 
-本项目基于 MIT 许可证开源 - 查看 [LICENSE](LICENSE) 文件了解详情。
+本项目基于 MIT 许可证开源 - 查看 [LICENSE](../../LICENSE) 文件了解详情。
 
 ---
 
