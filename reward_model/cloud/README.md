@@ -67,54 +67,67 @@ pip install -r requirements.txt
 
 ---
 
-## 📚 完整训练流程
+## 📚 训练流程概览
 
-### 第一阶段：数据收集与批判学习
+整个训练流程分为五个阶段：
 
-#### 1. 收集原始批判
+1. 📝 **收集原始批判**：使用另外的大模型生成原始批判，用于蒸馏批判供小模型学习
 
-**详细处理代码见 `数据收集.ipynb`**
+2. 🎓 **第一阶段 SFT 训练**：用原始批判数据进行 SFT。
 
-首先需要从规模更大的模型中蒸馏出批判，然后训练规模较小的奖励模型。
+3. 🤖 **获取自生成批判**：部署训练好的 SFT 模型，生成自批判数据替换原始批判。
 
-**下载数据集**:
+4. 🏆 **奖励模型训练**：引入奖励头，联合训练 SFT + Reward Loss。
+
+5. 🚀 **推理部署**：最终部署，应用到实际任务场景。
+
+## 🛠️ 完整训练流程
+
+注意：以下除了两阶段训练之外，中间的数据处理和权重重组代码均在 `数据处理_权重重组.ipynb` 中。
+
+### 1. 收集原始批判
+
+首先需要从规模更大的模型中蒸馏出批判，然后训练规模较小的奖励模型，这里使用[`第一阶段权重重组`](数据处理_权重重组.ipynb#1-生成原始批判) 脚本
+
+首先可以下载一个数据集，或者使用自己业务的偏好数据集，这里使用 `Skywork-Reward-Preference-80K-v0.1`:
 ```bash
 pip install modelscope
 
 modelscope download --dataset Skywork/Skywork-Reward-Preference-80K-v0.1 --local_dir reward_model/data/Skywork-Reward-Preference-80K-v0.1
 ```
 
-**部署大模型服务**:
-下载规模更大的模型，或者使用 api，这里使用 Qwen2.5-72B-Instruct，下载到本地后使用 vllm 部署，注意替换python环境和模型地址。
+* **部署大模型服务**: 下载规模更大的模型，或者使用 api，这里使用 `Qwen2.5-72B-Instruct`，下载到本地后使用 vllm 部署，注意替换python环境和模型地址。
 
-> **重要提示**: `--max-model-len`需要限制一下，实验发现模型可能会出现重复生成的情况，持续让他生成到最大长度会极大拖慢推理时间，且数据无意义后期还需切除。在实际训练时长度过长对显存压力也较大，我这里只使用2048长度训练，可根据自己需求调整。
+    > **重要提示**: `--max-model-len`需要限制一下，实验发现模型可能会出现重复生成的情况，持续让他生成到最大长度会极大拖慢推理时间，且数据无意义后期还需切除。在实际训练时长度过长对显存压力也较大，我这里只使用2048长度训练，可根据自己需求调整。`max-model-len`代表数据总长度，新生成长度可在调用时设置。
 
-```bash
-CUDA_VISIBLE_DEVICES=0,1,2,3 python -m vllm.entrypoints.openai.api_server \
-    --host 0.0.0.0 \
-    --port 5001 \
-    --served-model-name qwen25 \
-    --model Qwen/Qwen2.5-72B-Instruct \
-    --tensor_parallel_size 4 \
-    --gpu-memory-utilization 0.9 \
-    --max-model-len 2048
-```
+    ```bash
+    CUDA_VISIBLE_DEVICES=0,1,2,3 python -m vllm.entrypoints.openai.api_server \
+        --host 0.0.0.0 \
+        --port 5001 \
+        --served-model-name qwen25 \
+        --model Qwen/Qwen2.5-72B-Instruct \
+        --tensor_parallel_size 4 \
+        --gpu-memory-utilization 0.9 \
+        --max-model-len 2048
+    ```
 
-**多进程推理**: 当数据量很大时，推理生成原始批判速度较慢，此时可以部署多个节点，使用 `multi_process_reason_for_vllm.py` 脚本多进程推理。
+* **多进程推理**: 当数据量很大时，推理生成原始批判速度较慢，此时可以部署多个节点，使用 `multi_process_reason_for_vllm.py` 脚本多进程推理，已在 jupyter 中调用。
 
-**数据清洗**: 得到的批判需要反复清洗，这步很关键，批判数据越脏模型越难学习。本仓库根据数据情况创建启发式规则，包括json结构判断、token长度判断、不完整句式判断等。
+* **数据清洗**: 得到的批判需要反复清洗，这步很关键，批判数据越脏模型越难学习。本仓库根据数据情况创建启发式规则，包括json结构判断、token长度判断、不完整句式判断等。
 
-#### 2. 批判学习训练
+### 2. 第一阶段 SFT 训练
 
 第一阶段就是常规的 SFT 训练，学习如何对数据进行批判，可直接使用 `train_sft1.sh` 脚本训练。
 
 ```bash
-bash train_sft1.sh
+sh train_sft1.sh
 ```
 
-### 第二阶段：模型重组与自生成批判
+* **训练周期**：通常模型在 2 epoch 左右能收敛到最低，第 3 个 epoch 开始过拟合。
 
-#### 1. 训练模型重组
+* **权重重组**：trainer只保存了权重，直接用 vllm 部署缺少一些 tokenizer 的文件（应该也有一些别的办法），这里使用 [`第一阶段权重重组`](数据处理_权重重组.ipynb#2-第一阶段训练权重原模型权重-重组) 脚本，将原始模型的一些文件与训练权重结合。
+
+### 3. 获取自生成批判
 
 trainer训练完保存的权重无法直接使用，缺少一些tokenizer的文件（应该也有一些别的办法），这里使用 `模型权重重组.ipynb` 脚本的第一部分重组权重，将原始模型的一些文件与训练权重结合。
 
