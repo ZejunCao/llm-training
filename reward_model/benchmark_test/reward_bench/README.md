@@ -74,10 +74,10 @@ reward_bench/
 
 ## 📈 示例图表
 
-### 奖励分数分布
+奖励分数分布
 
-![score_distribution](figures/score_distribution.png)
+<img src="figures/score_distribution.png" width="600" alt="score distribution">
 
-### 批判长度分布
+批判长度分布
 
-![critique\_length\_distribution](figures/critique_length_distribution.png)
+<img src="figures/critique_length_distribution.png" width="600" alt="critique length distribution">
