@@ -1,10 +1,7 @@
-# start_services.sh
 #!/bin/bash
 
 # 设置环境变量
 export CUDA_VISIBLE_DEVICES=0,1,2,3
-conda dactivate
-conda activate zejun7-vllm
 
 # 启动奖励头服务
 echo "启动奖励头服务..."
