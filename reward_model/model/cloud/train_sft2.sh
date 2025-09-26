@@ -11,7 +11,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 deepspeed  train_sft2.py \
     --gradient_accumulation_steps 4 \
     --deepspeed deepspeed/ds_z3_config.json \
     --logging_steps 50 \
-    --save_steps 500 \
-    --eval_steps 500 \
+    --save_strategy epoch \
+    --eval_strategy epoch \
     --report_to wandb \
     --run_name cloud_sft2_0825

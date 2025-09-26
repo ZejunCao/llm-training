@@ -64,10 +64,10 @@ class CustomTrainingArguments(TrainingArguments):
     # gradient_checkpointing: bool = field(default=True, metadata={"help": "是否启用梯度检查点，默认False"})
 
     logging_steps: float = field(default=25, metadata={"help": "打印日志间隔步数，如果设置小于1的float值，则按epoch比例记录"})
-    save_steps: float = field(default=250, metadata={"help": "保存模型间隔步数，如果设置小于1的float值，则按epoch比例保存"})
+    # save_steps: float = field(default=250, metadata={"help": "保存模型间隔步数，如果设置小于1的float值，则按epoch比例保存"})
     save_only_model: bool = field(default=True, metadata={"help": "是否只保存模型，如果为False，则保存优化器、调度器和rng状态"})
-    eval_strategy: str = field(default="steps", metadata={"help": "评估策略，可选[no, steps, epoch]"})
-    eval_steps: int = field(default=250, metadata={"help": "评估间隔步数，如果设置小于1的float值，则按epoch比例评估"})
+    # eval_strategy: str = field(default="steps", metadata={"help": "评估策略，可选[no, steps, epoch]"})
+    # eval_steps: int = field(default=250, metadata={"help": "评估间隔步数，如果设置小于1的float值，则按epoch比例评估"})
 
     report_to: str = field(default="none", metadata={"help": "报告结果和日志的集成列表，支持多种集成，如wandb、tensorboard等，none表示不报告，all表示报告所有已安装的集成"})
     # run_name: Optional[str] = field(default="naive_cloud_sft_full_v2", metadata={"help": "wandb运行任务名称，若为None，则默认使用output_dir的名字"})
