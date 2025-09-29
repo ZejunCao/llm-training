@@ -2,10 +2,11 @@
 
 # 设置环境变量
 export CUDA_VISIBLE_DEVICES=0,1,2,3
+export ROOT_PATH=/Users/zejun7/python/llm-training
 
 # 启动奖励头服务
 echo "启动奖励头服务..."
-CUDA_VISIBLE_DEVICES=0,1 vllm serve save/cloud_sft2_0827/checkpoint-501 \
+CUDA_VISIBLE_DEVICES=0,1 vllm serve ${ROOT_PATH}/reward_model/model/cloud/save/cloud_sft2_0827/checkpoint-501 \
     --served-model-name r1-reward \
     --tensor-parallel-size 2 \
     --port 5001 \
@@ -20,7 +21,7 @@ CUDA_VISIBLE_DEVICES=2,3 python -m vllm.entrypoints.openai.api_server \
     --host 0.0.0.0 \
     --port 5002 \
     --served-model-name qwen2 \
-    --model save/cloud_sft2_0827/checkpoint-502 \
+    --model ${ROOT_PATH}/reward_model/model/cloud/save/cloud_sft2_0827/checkpoint-502 \
     --tensor_parallel_size 2 \
     --gpu-memory-utilization 0.9 \
     --max-model-len 8192 &
